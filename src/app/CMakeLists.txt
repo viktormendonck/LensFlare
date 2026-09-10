@@ -2,11 +2,17 @@ qt_add_executable(lensflare
     main.cpp
 )
 
+set_source_files_properties(
+        Constants.qml
+        PROPERTIES QT_QML_SINGLETON_TYPE TRUE
+)
+
 qt_add_qml_module(lensflare
     URI Lensflare
     VERSION 1.0
     QML_FILES
-        qml/Main.qml
+        Constants.qml
+        Main.qml
 )
 
 target_link_libraries(lensflare
