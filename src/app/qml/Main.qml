@@ -11,4 +11,5 @@ ApplicationWindow {
         anchors.centerIn: parent
         text: "Lensflare"
     }
+    
 }

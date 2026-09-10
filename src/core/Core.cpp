@@ -1,1 +1,1 @@
-#include <lensflare/core/Core.h>
+#include "Core.h"

@@ -1,5 +1,5 @@
 add_library(lensflare_core STATIC
-    Core.cpp,
+    Core.cpp
     Core.h
 )
 
