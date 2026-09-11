@@ -16,63 +16,59 @@ MenuBar {
         delegate: MenuBarItem {
             contentItem: Text {
                 text: parent.text
-                color: "white"
+                color: Constants.text
             }
             background: Rectangle {
-                color: parent.highlighted
-                       ? Constants.background
-                       : Constants.accentBackground
+                color: parent.pressed
+                       ? Constants.selectedColor
+                       : parent.hovered
+                         ? Constants.background
+                         : Constants.accentBackground
+                border.color: parent.hovered
+                                 ? Constants.selectedOutlineColor
+                                 : Constants.outlineColor
+                border.width: 1
+                radius: 2
                 height: parent.height -2
-                Rectangle{
-                    width:1
-                    height: parent.height
-                    color: Constants.spacer
-                    anchors.top : parent.top
-                    anchors.left: parent.left
-                }
-                Rectangle{
-                    width:1
-                    height: parent.height
-                    color: Constants.spacer
-                    anchors.top : parent.top
-                    anchors.right: parent.right
-                }
+
             }
         } //menubar item styling
-        Menu {
+
+        spacing: 4
+        LFMenu {
             title: "File"
-            MenuItem {
+            LFMenuItem {
                 text: "Open"
 
                 onTriggered: appController.OpenFileButton()
-                LSToolTip{
+                LFToolTip{
                     text: "Ctrl+O"
                     visible: parent.hovered
                 }
             }
-            MenuItem {
+            LFMenuItem {
                 text: "Save"
                 onTriggered: appController.SaveButton()
-                LSToolTip{
+                LFToolTip{
                     text: "Ctrl+S"
                     visible: parent.hovered
                 }
             }
         }
-        Menu {
+        LFMenu {
             title: "Edit"
-            MenuItem {
+            LFMenuItem {
                 text: "Undo"
                 onTriggered: appController.UndoButton()
-                LSToolTip{
+                LFToolTip{
                     text: "Ctrl+Z"
                     visible: parent.hovered
                 }
             }
-            MenuItem {
+            LFMenuItem {
                 text: "Redo"
                 onTriggered: appController.RedoButton()
-                LSToolTip{
+                LFToolTip{
                     text: "Ctrl+Y"
                     visible: parent.hovered
                 }

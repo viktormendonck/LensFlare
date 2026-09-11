@@ -28,7 +28,10 @@ endfunction() #helper function to make adding qml files easier.
 
 
 add_lensflare_qml_file(qml/Main.qml)
-add_lensflare_qml_file(qml/common/LSToolTip.qml)
+add_lensflare_qml_file(qml/common/LFToolTip.qml)
+add_lensflare_qml_file(qml/common/LFButton.qml)
+add_lensflare_qml_file(qml/common/LFMenu.qml)
+add_lensflare_qml_file(qml/common/LFMenuItem.qml)
 add_lensflare_qml_file(qml/panels/MainMenuBar.qml)
 add_lensflare_qml_file(qml/panels/FolderViewPanel.qml)
 add_lensflare_qml_file(qml/panels/MainViewPanel.qml)
@@ -41,7 +44,10 @@ qt_add_qml_module(lensflare
         QML_FILES
         qml/Main.qml
         qml/common/Constants.qml
-        qml/common/LSToolTip.qml
+        qml/common/LFToolTip.qml
+        qml/common/LFButton.qml
+        qml/common/LFMenu.qml
+        qml/common/LFMenuItem.qml
         qml/panels/MainMenuBar.qml
         qml/panels/FolderViewPanel.qml
         qml/panels/MainViewPanel.qml

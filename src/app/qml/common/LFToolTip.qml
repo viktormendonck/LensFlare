@@ -14,6 +14,6 @@ ToolTip {
     contentItem: Text {
         text: root.text
         opacity: 0.8
-        color: Constants.toolTipText
+        color: Constants.text
     }
 }
