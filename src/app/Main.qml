@@ -8,18 +8,23 @@ ApplicationWindow {
     title: "Lensflare dev"
     MenuBar {
         id: menuBar
-        height: 25
+        height: 26
         width: parent.width
 
         background: Rectangle {
             color: Constants.accentBackground
-        }
+            Rectangle {
+                height: 2
+                width: parent.width
+                anchors.bottom: parent.bottom
+                color: Constants.spacer
+            }// spacer bar
+        } //menubar background
         delegate: MenuBarItem {
             contentItem: Text {
                 text: parent.text
                 color: "white"
             }
-
             background: Rectangle {
                 color: parent.highlighted
                        ? Constants.background
@@ -39,111 +44,45 @@ ApplicationWindow {
                     anchors.right: parent.right
                 }
             }
-        }
+        } //menubar styling
 
         Menu {
             title: "File"
-
             MenuItem {
                 text: "Open"
-                ToolTip {
+                LSToolTip{
                     text: "Ctrl+O"
                     visible: parent.hovered
-                    background: Rectangle {
-                        color: Constants.accentBackground
-                        opacity: 0.8
-                        radius: 4
-                        border.width:1
-                        border.color:Constants.spacer
-                    }
-                    contentItem: Text {
-                        text: "Ctrl+O"
-                        opacity: 0.8
-                        color: Constants.toolTipText
-                    }
                 }
             }
-
             MenuItem {
                 text: "Save"
-                ToolTip {
+                LSToolTip{
                     text: "Ctrl+S"
                     visible: parent.hovered
-                    background: Rectangle {
-                        color: Constants.accentBackground
-                        opacity: 0.8
-                        radius: 4
-                        border.width:1
-                        border.color:Constants.spacer
-                    }
-
-                    contentItem: Text {
-                        text: "Ctrl+S"
-                        opacity: 0.8
-                        color: Constants.toolTipText
-                    }
                 }
             }
         }
         Menu {
             title: "Edit"
-
             MenuItem {
                 text: "Undo"
-                ToolTip {
+                LSToolTip{
                     text: "Ctrl+Z"
                     visible: parent.hovered
-
-                    background: Rectangle {
-                        color: Constants.accentBackground
-                        opacity: 0.8
-                        radius: 4
-                        border.width:1
-                        border.color:Constants.spacer
-                    }
-
-                    contentItem: Text {
-                        text: "Ctrl+Z"
-                        opacity: 0.8
-                        color: Constants.toolTipText
-                    }
                 }
             }
             MenuItem {
                 text: "Redo"
-
-                ToolTip {
+                LSToolTip{
                     text: "Ctrl+Y"
                     visible: parent.hovered
-                    background: Rectangle {
-                        color: Constants.accentBackground
-                        opacity: 0.8
-                        radius: 4
-                        border.width:1
-                        border.color:Constants.spacer
-                    }
-
-                    contentItem: Text {
-                        text: "Ctrl+Y"
-                        opacity: 0.8
-                        color: Constants.toolTipText
-                    }
                 }
-
-
             }
         }
     }
-    Rectangle{
-        id: menuBarSpacer
-        height: 1
-        color: Constants.spacer
-        width: parent.width
-        anchors.top: menuBar.bottom
-        anchors.left: parent.left
-    }
     SplitView {
-        anchors.top: menuBarSpacer.bottom
+        anchors.top: menuBar.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom

@@ -13,6 +13,7 @@ qt_add_qml_module(lensflare
     QML_FILES
         Constants.qml
         Main.qml
+        LSToolTip.qml
 )
 
 target_link_libraries(lensflare
