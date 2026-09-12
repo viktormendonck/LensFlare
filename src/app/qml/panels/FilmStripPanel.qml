@@ -18,20 +18,66 @@ Rectangle{
         spacing: 8
 
         model: appController.imageCollection
+        currentIndex: appController.currentImageIndex
 
-        delegate: Rectangle {
-            width: 140
-            height: filmStrip.height
+        property bool shouldAutoPosition: false
 
-            border.width: 1
-            radius: 4
+        Timer {
+            id: autoPositionTimer
+            interval: 50
+            repeat: false
+
+            onTriggered: filmStrip.positionCurrentImage()
+        }
+        onCurrentIndexChanged: {
+            shouldAutoPosition = true
+            autoPositionTimer.restart()
+        }
+
+        function positionCurrentImage() {
+            if(filmStrip.shouldAutoPosition){
+                const targetIndex = Math.max(
+                    0,
+                    appController.currentImageIndex - 3
+                )
+
+                positionViewAtIndex(
+                    targetIndex,
+                    ListView.Beginning
+                )
+                filmStrip.shouldAutoPosition = false;
+            }
+        }
+
+        delegate: Column {
+            spacing: 4
+
+            Image {
+                id: thumbnail
+
+                height: filmStrip.height - 20
+                width: implicitHeight > 0
+                    ? implicitWidth * (height / implicitHeight)
+                    : height
+
+                source: model.thumbnail
+                fillMode: Image.PreserveAspectFit
+
+                onStatusChanged: {
+                    if (status === Image.Ready) {
+                        Qt.callLater(filmStrip.positionCurrentImage)
+                    }
+                }
+            }
 
             Text {
-                anchors.centerIn: parent
+                height: 20
+                width: thumbnail.width
                 text: model.fileName
-                elide: Text.ElideRight
-                width: parent.width - 16
+                color: Constants.text
+
                 horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
             }
         }
     }

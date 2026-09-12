@@ -25,9 +25,14 @@ class AppController : public QObject
         READ GetImageCollection
         CONSTANT
     )
+    Q_PROPERTY(
+        int currentImageIndex
+        READ GetCurrentImageIndex
+        NOTIFY CurrentImageIndexChanged
+    )
 public:
-    AppController(ImageProvider& imageProvider);
-    ~AppController();
+    AppController(ImageProvider& imageProvider, ImageCollectionModel* imageCollection);
+    ~AppController() override;
 
     Q_INVOKABLE void OpenFile(const QUrl& url);
     Q_INVOKABLE void SaveButton();
@@ -41,6 +46,13 @@ public:
         StatusTextChanged();
     };
     int GetImageRevision() const{return ImageRevision;}
+    int GetCurrentImageIndex() const{return CurrentImageIndex;}
+    void SetCurrentImageIndex(const int in)
+    {
+        if (CurrentImageIndex == in)return;
+        CurrentImageIndex = in;
+        emit CurrentImageIndexChanged();
+    }
     void SetImageRevision(const int in)
     {
         ImageRevision = in;
@@ -52,9 +64,11 @@ public:
 signals:
     void StatusTextChanged();
     void ImageRevisionChanged();
+    void CurrentImageIndexChanged();
 private:
     QString StatusText{"idle"};
     int ImageRevision{0};
+    int CurrentImageIndex{0};
 
     RawDecoder AppRawDecoder{};
     ImageProvider& AppImageProvider;

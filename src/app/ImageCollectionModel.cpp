@@ -23,7 +23,8 @@ QHash<int, QByteArray> ImageCollectionModel::roleNames() const
     return {
         { FileNameRole, "fileName" },
         { FilePathRole, "filePath" },
-        { ExtensionNameRole, "extensionName" }
+        { ExtensionNameRole, "extensionName" },
+        { ThumbnailUrlRole, "thumbnail" }
     };
 }
 
@@ -59,7 +60,10 @@ QVariant ImageCollectionModel::data(
         return QString::fromStdString(
             image.filePath.extension().string()
         );
-
+    case ThumbnailUrlRole:
+        return QString(
+            "image://lensflare-thumbnail/%1"
+        ).arg(index.row());
     default:
         return {};
     }
@@ -89,4 +93,14 @@ void ImageCollectionModel::LoadSiblingsFromFile(const std::filesystem::path& Ima
         }
     );
     endResetModel();
+}
+
+int ImageCollectionModel::FindIndexForPath(const std::filesystem::path& path) const
+{
+    for (int i = 0; i < static_cast<int>(Images.size()); ++i)
+    {
+        if (Images[i].filePath == path)
+            return i;
+    }
+    return -1;
 }

@@ -18,7 +18,8 @@ public:
     {
         FileNameRole = Qt::UserRole + 1,
         FilePathRole,
-        ExtensionNameRole
+        ExtensionNameRole,
+        ThumbnailUrlRole
     };
 
     explicit ImageCollectionModel(QObject* parent = nullptr);
@@ -26,7 +27,7 @@ public:
     int rowCount(
         const QModelIndex& parent = QModelIndex()
     ) const override;
-    QHash<int, QByteArray> roleNames() const;
+    QHash<int, QByteArray> roleNames() const override;
 
     QVariant data(
         const QModelIndex& index,
@@ -34,6 +35,10 @@ public:
     ) const override;
 
     void LoadSiblingsFromFile(const std::filesystem::path& ImagePath);
+
+    ImageEntry GetEntryAt(int index){return Images[index];}
+
+    int FindIndexForPath(const std::filesystem::path& path) const;
 
 private:
     std::vector<ImageEntry> Images;

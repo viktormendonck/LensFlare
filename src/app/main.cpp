@@ -1,3 +1,4 @@
+#include <complex>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <qqmlcontext.h>
@@ -8,6 +9,7 @@
 #include <cstdio>
 
 #include "AppController.h"
+#include "ThumbnailProvider.h"
 
 
 static QtMessageHandler previousMessageHandler = nullptr;
@@ -39,14 +41,20 @@ int main(int argc, char* argv[])
     QQmlApplicationEngine engine;
     previousMessageHandler = qInstallMessageHandler(lensflareMessageHandler);
 
-    auto* imageProvider = new ImageProvider();
+    ImageCollectionModel* imageCollectionModel = new ImageCollectionModel();
+    ImageProvider* imageProvider = new ImageProvider();
 
     engine.addImageProvider(
         "lensflare",
         imageProvider
     );
+    engine.addImageProvider(
+    "lensflare-thumbnail",
+        new ThumbnailProvider(imageCollectionModel)
+    );
 
-    AppController controller(*imageProvider);
+
+    AppController controller(*imageProvider,imageCollectionModel);
 
     engine.rootContext()->setContextProperty(
         "appController",
@@ -59,7 +67,7 @@ int main(int argc, char* argv[])
     );
 
     //load first image for testing
-    controller.OpenFile(QUrl::fromLocalFile("/home/lazage/Pictures/Temp/6.June 2026/13-06-2026/IMG_2190.CR2"));
+    controller.OpenFile(QUrl::fromLocalFile("/home/lazage/Pictures/Temp/6.June 2026/13-06-2026/IMG_2381.CR2"));
 
     if (engine.rootObjects().isEmpty()) {
         return -1;
