@@ -4,11 +4,18 @@
 #include <iostream>
 
 #include "ImageProvider.h"
+#include "ImageCollectionModel.h"
 
 
 AppController::AppController(::ImageProvider& imageProvider)
-    : AppImageProvider(imageProvider)
+    : AppImageProvider(imageProvider),
+      ImageCollection(new ImageCollectionModel(this))
 {
+}
+
+AppController::~AppController()
+{
+    delete ImageCollection;
 }
 
 void AppController::OpenFile(const QUrl& url)
@@ -21,9 +28,9 @@ void AppController::OpenFile(const QUrl& url)
     }
 
     try {
-        const Image image = AppRawDecoder.decode(
-            std::filesystem::path(localPath.toStdString())
-        );
+        const std::filesystem::path path = localPath.toStdString();
+        const Image image = AppRawDecoder.decode(path);
+        ImageCollection->LoadSiblingsFromFile(path);
 
         QImage qtImage(
             image.pixels.data(),

@@ -1,6 +1,7 @@
 #pragma once
 #include <qobject.h>
 
+#include "ImageCollectionModel.h"
 #include "ImageProvider.h"
 #include "raw/RawDecoder.h"
 
@@ -19,8 +20,14 @@ class AppController : public QObject
         READ GetImageRevision
         NOTIFY ImageRevisionChanged
     )
+    Q_PROPERTY(
+        ImageCollectionModel* imageCollection
+        READ GetImageCollection
+        CONSTANT
+    )
 public:
     AppController(ImageProvider& imageProvider);
+    ~AppController();
 
     Q_INVOKABLE void OpenFile(const QUrl& url);
     Q_INVOKABLE void SaveButton();
@@ -39,6 +46,8 @@ public:
         ImageRevision = in;
         ImageRevisionChanged();
     }
+    ImageCollectionModel* GetImageCollection() const {return ImageCollection;};
+
 
 signals:
     void StatusTextChanged();
@@ -49,6 +58,7 @@ private:
 
     RawDecoder AppRawDecoder{};
     ImageProvider& AppImageProvider;
+    ImageCollectionModel* ImageCollection{nullptr};
 };
 
 

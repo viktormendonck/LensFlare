@@ -7,9 +7,32 @@ Rectangle{
     SplitView.maximumHeight: parent.height * 0.3
 
     color: Constants.background
-    Label {
-        anchors.centerIn: parent
-        opacity: Constants.commentTextOpacity
-        text: "Filmstrip"
+    ListView {
+        id: filmStrip
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: parent.height
+
+        orientation: ListView.Horizontal
+        spacing: 8
+
+        model: appController.imageCollection
+
+        delegate: Rectangle {
+            width: 140
+            height: filmStrip.height
+
+            border.width: 1
+            radius: 4
+
+            Text {
+                anchors.centerIn: parent
+                text: model.fileName
+                elide: Text.ElideRight
+                width: parent.width - 16
+                horizontalAlignment: Text.AlignHCenter
+            }
+        }
     }
 }

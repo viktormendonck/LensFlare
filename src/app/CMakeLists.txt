@@ -4,6 +4,8 @@ qt_add_executable(lensflare
         AppController.h
         ImageProvider.cpp
         ImageProvider.h
+        ImageCollectionModel.cpp
+        ImageCollectionModel.h
 )
 
 set_source_files_properties(

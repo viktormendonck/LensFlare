@@ -3,6 +3,8 @@ add_library(lensflare_core STATIC
     Core.h
     raw/RawDecoder.cpp
     raw/RawDecoder.h
+        helpers.cpp
+        helpers.h
 )
 
 target_include_directories(lensflare_core
