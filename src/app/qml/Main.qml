@@ -79,4 +79,7 @@ ApplicationWindow {
             text: appController.statusText
         }
     } //id statusBar
+    LFFileDialogue{
+        id: fileDialogue
+    }
 }

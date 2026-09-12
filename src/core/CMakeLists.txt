@@ -1,9 +1,14 @@
 add_library(lensflare_core STATIC
     Core.cpp
     Core.h
+    raw/RawDecoder.cpp
+    raw/RawDecoder.h
 )
 
-add_library(lensflare::core ALIAS lensflare_core)
+target_include_directories(lensflare_core
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 target_link_libraries(lensflare_core
     PUBLIC

@@ -2,6 +2,8 @@ qt_add_executable(lensflare
     main.cpp
         AppController.cpp
         AppController.h
+        ImageProvider.cpp
+        ImageProvider.h
 )
 
 set_source_files_properties(
@@ -28,6 +30,7 @@ endfunction() #helper function to make adding qml files easier.
 
 
 add_lensflare_qml_file(qml/Main.qml)
+add_lensflare_qml_file(qml/miscPanels/LFFileDialogue.qml)
 add_lensflare_qml_file(qml/common/LFToolTip.qml)
 add_lensflare_qml_file(qml/common/LFButton.qml)
 add_lensflare_qml_file(qml/common/LFMenu.qml)
@@ -43,6 +46,7 @@ qt_add_qml_module(lensflare
         VERSION 1.0
         QML_FILES
         qml/Main.qml
+        qml/miscPanels/LFFileDialogue.qml
         qml/common/Constants.qml
         qml/common/LFToolTip.qml
         qml/common/LFButton.qml
@@ -57,7 +61,7 @@ qt_add_qml_module(lensflare
 
 target_link_libraries(lensflare
     PRIVATE
-        lensflare::core
+        lensflare_core
         Qt6::Core
         Qt6::Gui
         Qt6::Qml

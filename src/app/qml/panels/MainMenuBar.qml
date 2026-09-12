@@ -33,14 +33,13 @@ MenuBar {
 
             }
         } //menubar item styling
-
         spacing: 4
         LFMenu {
             title: "File"
             LFMenuItem {
                 text: "Open"
 
-                onTriggered: appController.OpenFileButton()
+                onClicked: fileDialogue.open()
                 LFToolTip{
                     text: "Ctrl+O"
                     visible: parent.hovered
