@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <filesystem>
 
+#include "raw/RawDecoder.h"
+
 ImageCollectionModel::ImageCollectionModel(QObject* parent)
     : QAbstractListModel(parent)
 {
@@ -24,7 +26,8 @@ QHash<int, QByteArray> ImageCollectionModel::roleNames() const
         { FileNameRole, "fileName" },
         { FilePathRole, "filePath" },
         { ExtensionNameRole, "extensionName" },
-        { ThumbnailUrlRole, "thumbnail" }
+        { ThumbnailUrlRole, "thumbnail" },
+        { AspectRatioRole, "aspectRatio" },
     };
 }
 
@@ -64,6 +67,8 @@ QVariant ImageCollectionModel::data(
         return QString(
             "image://lensflare-thumbnail/%1"
         ).arg(index.row());
+    case AspectRatioRole:
+        return image.aspectRatio;
     default:
         return {};
     }
@@ -82,7 +87,7 @@ void ImageCollectionModel::LoadSiblingsFromFile(const std::filesystem::path& Ima
         if (!entry.is_regular_file())continue;
         const std::filesystem::path& path = entry.path();
         if (!lensFlare::IsSupportedImageFile(path))continue;
-        Images.push_back({path});
+        Images.push_back({path,RawDecoder::GetPreviewAspectRatio(path)});
     }
 
     std::ranges::sort(Images,

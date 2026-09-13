@@ -8,6 +8,22 @@ Rectangle {
     SplitView.fillWidth: true
     color: Constants.background
 
+    function zoomIn() {
+        viewport.zoomAt(
+            viewport.width / 2,
+            viewport.height / 2,
+            viewport.zoom * 1.15
+        )
+    }
+
+    function zoomOut() {
+        viewport.zoomAt(
+            viewport.width / 2,
+            viewport.height / 2,
+            viewport.zoom / 1.15
+        )
+    }
+
     Item {
         id: viewportContainer
 

@@ -1,7 +1,16 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 
 Rectangle{
+    id: root
+
+    readonly property int imageCount: filmStrip.count
+
+    function centerCurrentImage() {
+        filmStrip.shouldAutoPosition = true
+        filmStrip.positionCurrentImage()
+    }
+
     SplitView.preferredHeight: parent.height * 0.2
     SplitView.minimumHeight: parent.height * 0.1
     SplitView.maximumHeight: parent.height * 0.3
@@ -19,6 +28,29 @@ Rectangle{
 
         model: appController.imageCollection
         currentIndex: appController.currentImageIndex
+
+        ScrollBar.horizontal: ScrollBar {
+            id: filmStripScrollBar
+
+            policy: ScrollBar.AlwaysOn
+            implicitHeight: 10
+
+            background: Rectangle {
+                implicitHeight: 10
+                color: Constants.accentBackground
+            }
+
+            contentItem: Rectangle {
+                implicitHeight: 10
+                radius: height / 2
+
+                color: filmStripScrollBar.pressed
+                    ? Constants.selectedOutlineColor
+                    : filmStripScrollBar.hovered
+                        ? Constants.selectedColor
+                        : Constants.spacer
+            }
+        }
 
         property bool shouldAutoPosition: false
 
@@ -49,35 +81,59 @@ Rectangle{
             }
         }
 
-        delegate: Column {
-            spacing: 4
+        delegate: Rectangle {
+            width: thumbnailColumn.width + 8
+            height: thumbnailColumn.height + 8
 
-            Image {
-                id: thumbnail
+            radius: 4
 
-                height: filmStrip.height - 20
-                width: implicitHeight > 0
-                    ? implicitWidth * (height / implicitHeight)
-                    : height
+            color: {
+                if (index === appController.currentImageIndex)
+                    return Constants.selectedColor
 
-                source: model.thumbnail
-                fillMode: Image.PreserveAspectFit
+                if (mouseArea.containsMouse)
+                    return Constants.selectedHoverColor
 
-                onStatusChanged: {
-                    if (status === Image.Ready) {
-                        Qt.callLater(filmStrip.positionCurrentImage)
-                    }
-                }
+                return "transparent"
             }
 
-            Text {
-                height: 20
-                width: thumbnail.width
-                text: model.fileName
-                color: Constants.text
+            border.width: index === appController.currentImageIndex ? 1 : 0
+            border.color: Constants.selectedOutlineColor
 
-                horizontalAlignment: Text.AlignHCenter
-                elide: Text.ElideRight
+
+            Column {
+                id: thumbnailColumn
+
+                anchors.centerIn: parent
+                spacing: 4
+
+                Image {
+                    id: thumbnail
+
+                    height: filmStrip.height - 43
+                    width: height * model.aspectRatio
+
+                    source: model.thumbnail
+                    fillMode: Image.PreserveAspectFit
+                }
+
+                Text {
+                    width: thumbnail.width
+                    height: 20
+
+                    text: model.fileName
+                    color: Constants.text
+
+                    horizontalAlignment: Text.AlignHCenter
+                    elide: Text.ElideRight
+                }
+
+            }
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: appController.OpenImage(index)
             }
         }
     }

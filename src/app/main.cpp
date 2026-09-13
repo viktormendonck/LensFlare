@@ -43,18 +43,18 @@ int main(int argc, char* argv[])
 
     ImageCollectionModel* imageCollectionModel = new ImageCollectionModel();
     ImageProvider* imageProvider = new ImageProvider();
-
+    ThumbnailProvider* thumbnailProvider = new ThumbnailProvider(imageCollectionModel);
     engine.addImageProvider(
         "lensflare",
         imageProvider
     );
     engine.addImageProvider(
     "lensflare-thumbnail",
-        new ThumbnailProvider(imageCollectionModel)
+        thumbnailProvider
     );
 
 
-    AppController controller(*imageProvider,imageCollectionModel);
+    AppController controller(*imageProvider,imageCollectionModel,*thumbnailProvider);
 
     engine.rootContext()->setContextProperty(
         "appController",

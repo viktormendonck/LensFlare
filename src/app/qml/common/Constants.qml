@@ -9,6 +9,7 @@ QtObject {
     readonly property color outlineColor: "#737178"
     readonly property color selectedOutlineColor: "#6d4493"
     readonly property color selectedColor: "#81639f"
+    readonly property color selectedHoverColor: "#544267"
     readonly property color text: "#d0d7d8"
     readonly property double commentTextOpacity: 0.7
 }

@@ -60,6 +60,54 @@ ApplicationWindow {
         } // id: filmstripPanel
     } // id: verticalSplitView
 
+    Shortcut {
+        sequence: "Left"
+        context: Qt.ApplicationShortcut
+        onActivated: {
+            if (appController.currentImageIndex > 0)
+                appController.OpenImage(appController.currentImageIndex - 1)
+        }
+    }
+
+    Shortcut {
+        sequence: "Right"
+        context: Qt.ApplicationShortcut
+        onActivated: {
+            if (appController.currentImageIndex < filmstripPanel.imageCount - 1)
+                appController.OpenImage(appController.currentImageIndex + 1)
+        }
+    }
+
+    Shortcut {
+        sequence: "Down"
+        context: Qt.ApplicationShortcut
+        onActivated: filmstripPanel.centerCurrentImage()
+    }
+
+    Shortcut {
+        sequence: "+"
+        context: Qt.ApplicationShortcut
+        onActivated: mainViewPanel.zoomIn()
+    }
+
+    Shortcut {
+        sequence: "-"
+        context: Qt.ApplicationShortcut
+        onActivated: mainViewPanel.zoomOut()
+    }
+
+    Shortcut {
+        sequence: "Num++"
+        context: Qt.ApplicationShortcut
+        onActivated: mainViewPanel.zoomIn()
+    }
+
+    Shortcut {
+        sequence: "Num+-"
+        context: Qt.ApplicationShortcut
+        onActivated: mainViewPanel.zoomOut()
+    }
+
     Rectangle{
         id: statusBar
         anchors.bottom: parent.bottom

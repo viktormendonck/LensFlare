@@ -7,6 +7,7 @@
 struct ImageEntry
 {
     std::filesystem::path filePath;
+    float aspectRatio;
 };
 
 class ImageCollectionModel : public QAbstractListModel
@@ -19,7 +20,8 @@ public:
         FileNameRole = Qt::UserRole + 1,
         FilePathRole,
         ExtensionNameRole,
-        ThumbnailUrlRole
+        ThumbnailUrlRole,
+        AspectRatioRole,
     };
 
     explicit ImageCollectionModel(QObject* parent = nullptr);
