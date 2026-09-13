@@ -2,6 +2,7 @@
 
 #include <QImage>
 #include <QQuickImageProvider>
+#include <QReadWriteLock>
 
 class ImageProvider : public QQuickImageProvider
 {
@@ -17,5 +18,6 @@ public:
     ) override;
 
 private:
-    QImage image_;
+    mutable QReadWriteLock ImageLock;
+    QImage Image;
 };

@@ -39,55 +39,36 @@ void AppController::OpenFile(const QUrl& url)
         ++ImageLoadRequest;
 
         const std::filesystem::path path = localPath.toStdString();
-        const Image image = AppRawDecoder.decode(path);
+        CurrentSourceImage = AppRawDecoder.decode(path);
 
         ImageCollection->LoadSiblingsFromFile(path);
         SetCurrentImageIndex(ImageCollection->FindIndexForPath(path));
 
-        QImage qtImage(
-            image.pixels.data(),
-            image.width,
-            image.height,
-            image.width * image.channels,
-            QImage::Format_RGB888
-        );
+        ResetEdits();
+        PublishPreview(AppPreviewGenerator.Create(CurrentSourceImage));
 
-        AppImageProvider.setImage(qtImage.copy());
-        SetImageRevision(ImageRevision + 1);
-
-        SetStatusText(
-            QString("Opened %1").arg(localPath)
-        );
+        SetStatusText(QString("Opened %1").arg(localPath));
     }
     catch (const std::exception& error)
     {
-        SetStatusText(
-            QString("Failed to open RAW: %1")
-                .arg(error.what())
-        );
+        SetStatusText(QString("Failed to open RAW: %1").arg(error.what()));
     }
 }
 
 void AppController::OpenImage(int index)
 {
-    if (!ImageCollection ||
-        index < 0 ||
-        index >= ImageCollection->rowCount())
+    if (!ImageCollection || index < 0 || index >= ImageCollection->rowCount())
         return;
 
-    const auto path =
-        ImageCollection->GetEntryAt(index).filePath;
+    SetPreviewReady(false);
 
+    const auto path = ImageCollection->GetEntryAt(index).filePath;
     SetCurrentImageIndex(index);
 
-    const QImage thumbnail =
-        AppThumbnailProvider.GetCachedThumbnail(path);
+    LoadingThumbnailSource =
+    QString("image://lensflare-thumbnail/%1").arg(index);
 
-    if (!thumbnail.isNull())
-    {
-        AppImageProvider.setImage(thumbnail);
-        SetImageRevision(ImageRevision + 1);
-    }
+    emit LoadingThumbnailSourceChanged();
 
     const int request = ++ImageLoadRequest;
 
@@ -97,7 +78,7 @@ void AppController::OpenImage(int index)
             {
                 try
                 {
-                    const Image image = AppRawDecoder.decode(
+                    auto image = AppRawDecoder.decode(
                         path,
                         [this, request]()
                         {
@@ -105,44 +86,35 @@ void AppController::OpenImage(int index)
                         }
                     );
 
-                    if (request != ImageLoadRequest.load() ||
-                        image.pixels.empty())
+                    if (request != ImageLoadRequest.load() || image.IsNull())
                         return;
 
-                    QImage qtImage(
-                        image.pixels.data(),
-                        image.width,
-                        image.height,
-                        image.width * image.channels,
-                        QImage::Format_RGB888
-                    );
+                    QImage preview = AppPreviewGenerator.Create(image);
 
-                    qtImage = qtImage.copy();
-
-                    if (request != ImageLoadRequest.load())
+                    if (request != ImageLoadRequest.load() || preview.isNull())
                         return;
 
                     QMetaObject::invokeMethod(
                         this,
-                        [this,
-                         request,
-                         path,
-                         qtImage = std::move(qtImage)]() mutable
+                        [
+                            this,
+                            request,
+                            path,
+                            image = std::move(image),
+                            preview = std::move(preview)
+                        ]() mutable
                         {
                             if (request != ImageLoadRequest.load())
                                 return;
 
-                            AppImageProvider.setImage(
-                                std::move(qtImage)
-                            );
-
-                            SetImageRevision(ImageRevision + 1);
+                            CurrentSourceImage = std::move(image);
+                            ResetEdits();
+                            PublishPreview(std::move(preview));
 
                             SetStatusText(
-                                QString("Opened %1")
-                                    .arg(QString::fromStdString(
-                                        path.string()
-                                    ))
+                                QString("Opened %1").arg(
+                                    QString::fromStdString(path.string())
+                                )
                             );
                         },
                         Qt::QueuedConnection
@@ -150,8 +122,7 @@ void AppController::OpenImage(int index)
                 }
                 catch (const std::exception& error)
                 {
-                    const QString message =
-                        QString::fromUtf8(error.what());
+                    const QString message = QString::fromUtf8(error.what());
 
                     QMetaObject::invokeMethod(
                         this,
@@ -161,8 +132,7 @@ void AppController::OpenImage(int index)
                                 return;
 
                             SetStatusText(
-                                QString("Failed to open RAW: %1")
-                                    .arg(message)
+                                QString("Failed to open RAW: %1").arg(message)
                             );
                         },
                         Qt::QueuedConnection
@@ -171,6 +141,33 @@ void AppController::OpenImage(int index)
             }
         )
     );
+}
+
+void AppController::SetExposure(float exposure)
+{
+    if (CurrentEditState.exposure == exposure)
+        return;
+
+    CurrentEditState.exposure = exposure;
+    emit ExposureChanged();
+}
+
+void AppController::ResetEdits()
+{
+    CurrentEditState = {};
+    emit ExposureChanged();
+}
+
+void AppController::PublishPreview(QImage preview)
+{
+    if (preview.isNull())
+        return;
+
+    AppImageProvider.setImage(std::move(preview));
+
+    SetPreviewReady(true);
+
+    SetImageRevision(ImageRevision + 1);
 }
 
 void AppController::SaveButton()

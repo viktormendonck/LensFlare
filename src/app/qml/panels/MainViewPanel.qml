@@ -8,11 +8,17 @@ Rectangle {
     SplitView.fillWidth: true
     color: Constants.background
 
+    property real zoomStep: 1.15
+    property real fitPadding: 40
+    property real minimumZoom: 0.05
+    property real maximumZoom: 16.0
+    property int controlPanelHeight: 35
+
     function zoomIn() {
         viewport.zoomAt(
             viewport.width / 2,
             viewport.height / 2,
-            viewport.zoom * 1.15
+            viewport.zoom * zoomStep
         )
     }
 
@@ -20,7 +26,7 @@ Rectangle {
         viewport.zoomAt(
             viewport.width / 2,
             viewport.height / 2,
-            viewport.zoom / 1.15
+            viewport.zoom / zoomStep
         )
     }
 
@@ -41,65 +47,91 @@ Rectangle {
             boundsBehavior: Flickable.StopAtBounds
 
             property real zoom: 1.0
-            property real minimumZoom: 0.05
-            property real maximumZoom: 16.0
 
-            contentWidth: viewport.width + image.width
-            contentHeight: viewport.height + image.height
+            contentWidth: width + imageContainer.width
+            contentHeight: height + imageContainer.height
 
             function clamp(value, minimum, maximum) {
                 return Math.max(minimum, Math.min(maximum, value))
             }
 
             function centerImage() {
-                contentX = image.width / 2
-                contentY = image.height / 2
+                contentX = imageContainer.width / 2
+                contentY = imageContainer.height / 2
             }
 
             function fitZoom() {
-                if (image.implicitWidth <= 0 || image.implicitHeight <= 0)
+                if (imageContainer.sourceWidth <= 0 ||
+                    imageContainer.sourceHeight <= 0)
                     return
 
-                const padding = 40
-                const availableWidth = Math.max(1, width - padding)
-                const availableHeight = Math.max(1, height - padding)
-                const xScale = availableWidth / image.implicitWidth
-                const yScale = availableHeight / image.implicitHeight
+                const availableWidth = Math.max(
+                    1,
+                    width - mainViewPanel.fitPadding
+                )
 
-                zoom = Math.min(xScale, yScale)
-                centerImage()
+                const availableHeight = Math.max(
+                    1,
+                    height - mainViewPanel.fitPadding
+                )
+
+                const xScale =
+                    availableWidth / imageContainer.sourceWidth
+
+                const yScale =
+                    availableHeight / imageContainer.sourceHeight
+
+                zoom = Math.min(
+                    xScale,
+                    yScale,
+                    mainViewPanel.maximumZoom
+                )
+
+                Qt.callLater(centerImage)
             }
 
             function zoomAt(mouseX, mouseY, requestedZoom) {
-                if (image.implicitWidth <= 0 || image.implicitHeight <= 0)
+                if (imageContainer.sourceWidth <= 0 ||
+                    imageContainer.sourceHeight <= 0)
                     return
 
-                const oldWidth = image.width
-                const oldHeight = image.height
-                const oldImageX = viewport.width / 2
-                const oldImageY = viewport.height / 2
-                const imageU = (contentX + mouseX - oldImageX) / oldWidth
-                const imageV = (contentY + mouseY - oldImageY) / oldHeight
-                const newZoom = clamp(requestedZoom, minimumZoom, maximumZoom)
+                const oldWidth = imageContainer.width
+                const oldHeight = imageContainer.height
+
+                if (oldWidth <= 0 || oldHeight <= 0)
+                    return
+
+                const imageU =
+                    (contentX + mouseX - imageContainer.x) / oldWidth
+
+                const imageV =
+                    (contentY + mouseY - imageContainer.y) / oldHeight
+
+                const newZoom = clamp(
+                    requestedZoom,
+                    mainViewPanel.minimumZoom,
+                    mainViewPanel.maximumZoom
+                )
 
                 if (newZoom === zoom)
                     return
 
-                const newImageWidth = image.implicitWidth * newZoom
-                const newImageHeight = image.implicitHeight * newZoom
-                const newImageX = viewport.width / 2
-                const newImageY = viewport.height / 2
+                const newWidth =
+                    imageContainer.sourceWidth * newZoom
+
+                const newHeight =
+                    imageContainer.sourceHeight * newZoom
 
                 zoom = newZoom
 
                 contentX = clamp(
-                    newImageX + imageU * newImageWidth - mouseX,
+                    imageContainer.x + imageU * newWidth - mouseX,
                     0,
                     Math.max(0, contentWidth - width)
                 )
 
                 contentY = clamp(
-                    newImageY + imageV * newImageHeight - mouseY,
+                    imageContainer.y + imageV * newHeight - mouseY,
                     0,
                     Math.max(0, contentHeight - height)
                 )
@@ -111,24 +143,76 @@ Rectangle {
                 width: viewport.contentWidth
                 height: viewport.contentHeight
 
-                Image {
-                    id: image
+                Item {
+                    id: imageContainer
 
                     x: viewport.width / 2
                     y: viewport.height / 2
-                    width: implicitWidth * viewport.zoom
-                    height: implicitHeight * viewport.zoom
 
-                    source: appController.imageRevision > 0
-                        ? "image://lensflare/current?v=" + appController.imageRevision
-                        : ""
+                    readonly property real sourceWidth:
+                        appController.previewReady
+                            ? gpuImage.implicitWidth
+                            : loadingThumbnail.implicitWidth
 
-                    asynchronous: false
-                    cache: false
+                    readonly property real sourceHeight:
+                        appController.previewReady
+                            ? gpuImage.implicitHeight
+                            : loadingThumbnail.implicitHeight
 
-                    onStatusChanged: {
-                        if (status === Image.Ready)
-                            viewport.fitZoom()
+                    width: sourceWidth * viewport.zoom
+                    height: sourceHeight * viewport.zoom
+
+                    Image {
+                        id: loadingThumbnail
+
+                        anchors.fill: parent
+
+                        source: appController.loadingThumbnailSource
+                        fillMode: Image.PreserveAspectFit
+
+                        visible: !appController.previewReady
+                        asynchronous: false
+                        cache: true
+
+                        onStatusChanged: {
+                            if (status === Image.Ready &&
+                                !appController.previewReady)
+                            {
+                                Qt.callLater(viewport.fitZoom)
+                            }
+                        }
+                    }
+
+                    GpuImageView {
+                        id: gpuImage
+
+                        anchors.fill: parent
+
+                        source: appController.previewReady
+                            ? appController.previewSource
+                            : ""
+
+                        exposure: appController.exposure
+
+                        visible: appController.previewReady
+
+                        onImplicitWidthChanged: {
+                            if (appController.previewReady &&
+                                implicitWidth > 0 &&
+                                implicitHeight > 0)
+                            {
+                                Qt.callLater(viewport.fitZoom)
+                            }
+                        }
+
+                        onImplicitHeightChanged: {
+                            if (appController.previewReady &&
+                                implicitWidth > 0 &&
+                                implicitHeight > 0)
+                            {
+                                Qt.callLater(viewport.fitZoom)
+                            }
+                        }
                     }
                 }
             }
@@ -146,9 +230,13 @@ Rectangle {
             id: inputArea
 
             anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
-            hoverEnabled: true
+            acceptedButtons: appController.previewReady
+                ? Qt.LeftButton
+                : Qt.NoButton
+
+            hoverEnabled: appController.previewReady
             preventStealing: true
+            enabled: appController.previewReady
 
             property real dragStartX: 0
             property real dragStartY: 0
@@ -156,7 +244,15 @@ Rectangle {
             property real contentStartY: 0
 
             onWheel: wheel => {
-                const factor = wheel.angleDelta.y > 0 ? 1.15 : 1.0 / 1.15
+                if (!appController.previewReady) {
+                    wheel.accepted = true
+                    return
+                }
+
+                const factor =
+                    wheel.angleDelta.y > 0
+                        ? mainViewPanel.zoomStep
+                        : 1.0 / mainViewPanel.zoomStep
 
                 viewport.zoomAt(
                     wheel.x,
@@ -168,6 +264,9 @@ Rectangle {
             }
 
             onPressed: mouse => {
+                if (!appController.previewReady)
+                    return
+
                 dragStartX = mouse.x
                 dragStartY = mouse.y
                 contentStartX = viewport.contentX
@@ -175,6 +274,9 @@ Rectangle {
             }
 
             onPositionChanged: mouse => {
+                if (!appController.previewReady)
+                    return
+
                 if (!(mouse.buttons & Qt.LeftButton))
                     return
 
@@ -184,13 +286,19 @@ Rectangle {
                 viewport.contentX = viewport.clamp(
                     contentStartX - deltaX,
                     0,
-                    Math.max(0, viewport.contentWidth - viewport.width)
+                    Math.max(
+                        0,
+                        viewport.contentWidth - viewport.width
+                    )
                 )
 
                 viewport.contentY = viewport.clamp(
                     contentStartY - deltaY,
                     0,
-                    Math.max(0, viewport.contentHeight - viewport.height)
+                    Math.max(
+                        0,
+                        viewport.contentHeight - viewport.height
+                    )
                 )
             }
         }
@@ -225,8 +333,10 @@ Rectangle {
 
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+
         width: parent.width
-        height: 35
+        height: mainViewPanel.controlPanelHeight
+
         color: Constants.accentBackground
 
         Row {
@@ -237,27 +347,31 @@ Rectangle {
 
             LFButton {
                 text: "-"
+
                 onClicked: viewport.zoomAt(
                     viewport.width / 2,
                     viewport.height / 2,
-                    viewport.zoom / 1.15
+                    viewport.zoom / mainViewPanel.zoomStep
                 )
             }
 
             Label {
                 width: 50
+
                 anchors.verticalCenter: parent.verticalCenter
                 horizontalAlignment: Text.AlignHCenter
                 opacity: Constants.commentTextOpacity
+
                 text: Math.round(viewport.zoom * 100) + "%"
             }
 
             LFButton {
                 text: "+"
+
                 onClicked: viewport.zoomAt(
                     viewport.width / 2,
                     viewport.height / 2,
-                    viewport.zoom * 1.15
+                    viewport.zoom * mainViewPanel.zoomStep
                 )
             }
 

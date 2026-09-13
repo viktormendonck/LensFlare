@@ -1,15 +1,22 @@
 add_library(lensflare_core STATIC
-    Core.cpp
-    Core.h
-    raw/RawDecoder.cpp
-    raw/RawDecoder.h
+        Core.cpp
+        Core.h
+        raw/RawDecoder.cpp
+        raw/RawDecoder.h
         helpers.cpp
         helpers.h
+        editor/EditableImage.cpp
+        editor/EditableImage.h
+        editor/EditState.h
+        editor/EditorConstants.h
+        editor/ImageProcessor.cpp
+        editor/ImageProcessor.h
+        editor/PreviewImageGenerator.cpp
+        editor/PreviewImageGenerator.h
 )
 
 target_include_directories(lensflare_core
-        PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(lensflare_core

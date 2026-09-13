@@ -4,13 +4,7 @@
 #include <functional>
 #include <vector>
 
-struct Image
-{
-    int width{0};
-    int height{0};
-    int channels{0};
-    std::vector<std::uint8_t> pixels;
-};
+#include "editor/EditableImage.h"
 
 struct Thumbnail
 {
@@ -28,7 +22,7 @@ public:
 
     virtual ~RawDecoder() = default;
 
-    virtual Image decode(
+    virtual lensflare::image::EditableImage decode(
         const std::filesystem::path& path,
         const CancelCheck& cancelled = {}
     ) const;

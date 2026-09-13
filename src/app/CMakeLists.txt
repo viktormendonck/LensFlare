@@ -1,5 +1,5 @@
 qt_add_executable(lensflare
-    main.cpp
+        main.cpp
         AppController.cpp
         AppController.h
         ImageProvider.cpp
@@ -8,6 +8,7 @@ qt_add_executable(lensflare
         ImageCollectionModel.h
         ThumbnailProvider.cpp
         ThumbnailProvider.h
+        Helper.h
 )
 
 set_source_files_properties(
@@ -39,6 +40,10 @@ add_lensflare_qml_file(qml/common/LFToolTip.qml)
 add_lensflare_qml_file(qml/common/LFButton.qml)
 add_lensflare_qml_file(qml/common/LFMenu.qml)
 add_lensflare_qml_file(qml/common/LFMenuItem.qml)
+add_lensflare_qml_file(qml/common/LFVerticalSpacer.qml)
+add_lensflare_qml_file(qml/common/LFHorizontalSpacer.qml)
+add_lensflare_qml_file(qml/common/Constants.qml)
+add_lensflare_qml_file(qml/common/GpuImageView.qml)
 add_lensflare_qml_file(qml/panels/MainMenuBar.qml)
 add_lensflare_qml_file(qml/panels/FolderViewPanel.qml)
 add_lensflare_qml_file(qml/panels/MainViewPanel.qml)
@@ -49,18 +54,16 @@ qt_add_qml_module(lensflare
         URI Lensflare
         VERSION 1.0
         QML_FILES
-        qml/Main.qml
-        qml/miscPanels/LFFileDialogue.qml
-        qml/common/Constants.qml
-        qml/common/LFToolTip.qml
-        qml/common/LFButton.qml
-        qml/common/LFMenu.qml
-        qml/common/LFMenuItem.qml
-        qml/panels/MainMenuBar.qml
-        qml/panels/FolderViewPanel.qml
-        qml/panels/MainViewPanel.qml
-        qml/panels/EditingPanel.qml
-        qml/panels/FilmStripPanel.qml
+        ${LENSFLARE_QML_FILES}
+)
+
+qt_add_shaders(lensflare "lensflare_preview_shaders"
+        PREFIX
+        "/shaders"
+        BASE
+        "${CMAKE_CURRENT_SOURCE_DIR}/qml/shaders"
+        FILES
+        qml/shaders/ImagePreview.frag
 )
 
 target_link_libraries(lensflare

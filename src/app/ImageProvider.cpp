@@ -1,5 +1,8 @@
 #include "ImageProvider.h"
 
+#include <QReadLocker>
+#include <QWriteLocker>
+
 #include <utility>
 
 ImageProvider::ImageProvider()
@@ -9,17 +12,19 @@ ImageProvider::ImageProvider()
 
 void ImageProvider::setImage(QImage image)
 {
-    image_ = std::move(image);
+    QWriteLocker lock(&ImageLock);
+    Image = std::move(image);
 }
 
 QImage ImageProvider::requestImage(
     const QString&,
     QSize* size,
-    const QSize&
-)
+    const QSize&)
 {
-    if (size)
-        *size = image_.size();
+    QReadLocker lock(&ImageLock);
 
-    return image_;
+    if (size)
+        *size = Image.size();
+
+    return Image;
 }
