@@ -1,8 +1,13 @@
 add_library(lensflare_core STATIC
         Core.cpp
         Core.h
+        raw/LibRawProcessor.cpp
+        raw/LibRawProcessor.h
         raw/RawDecoder.cpp
         raw/RawDecoder.h
+        raw/RawDeveloper.cpp
+        raw/RawDeveloper.h
+        raw/RawProcessingConstants.h
         helpers.cpp
         helpers.h
         editor/EditableImage.cpp
@@ -13,6 +18,7 @@ add_library(lensflare_core STATIC
         editor/ImageProcessor.h
         editor/PreviewImageGenerator.cpp
         editor/PreviewImageGenerator.h
+        raw/HighlightReconstructor.cpp
 )
 
 target_include_directories(lensflare_core

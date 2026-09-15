@@ -1,10 +1,12 @@
 #include "RawDecoder.h"
 
 #include <algorithm>
-#include <cstdint>
 #include <libraw/libraw.h>
 #include <stdexcept>
 #include <string>
+#include <iostream>
+
+#include "LibRawProcessor.h"
 
 void RawDecoder::throwLibRawError(
     const std::string& operation,
@@ -22,18 +24,27 @@ lensflare::image::EditableImage RawDecoder::decode(
     if (IsCancelled(cancelled))
         return {};
 
-    LibRaw processor;
-    processor.imgdata.params.output_bps = 16;
-    processor.imgdata.params.use_camera_wb = 1;
-    processor.imgdata.params.use_auto_wb = 0;
-    processor.imgdata.params.no_auto_bright = 1;
-    processor.imgdata.params.bright = 1.0f;
-    processor.imgdata.params.gamm[0] = 1.0f;
-    processor.imgdata.params.gamm[1] = 1.0f;
+    std::cerr
+        << "[Lensflare RAW] decode start: "
+        << path
+        << '\n';
+
+    lensflare::raw::LibRawProcessor processor;
 
     int result = processor.open_file(path.string().c_str());
     if (result != LIBRAW_SUCCESS)
         throwLibRawError("Opening RAW file", result);
+
+    std::cerr
+        << "[Lensflare RAW] open_file ok"
+        << " | make=" << processor.imgdata.idata.make
+        << " | model=" << processor.imgdata.idata.model
+        << " | raw=" << processor.imgdata.sizes.raw_width
+        << "x" << processor.imgdata.sizes.raw_height
+        << " | visible=" << processor.imgdata.sizes.width
+        << "x" << processor.imgdata.sizes.height
+        << " | flip=" << processor.imgdata.sizes.flip
+        << '\n';
 
     if (IsCancelled(cancelled))
         return {};
@@ -42,75 +53,29 @@ lensflare::image::EditableImage RawDecoder::decode(
     if (result != LIBRAW_SUCCESS)
         throwLibRawError("Unpacking RAW file", result);
 
+    std::cerr
+        << "[Lensflare RAW] unpack ok"
+        << " | black=" << processor.imgdata.color.black
+        << " | white=" << processor.imgdata.color.maximum
+        << " | filters=" << processor.imgdata.idata.filters
+        << '\n';
+
     if (IsCancelled(cancelled))
         return {};
 
-    result = processor.dcraw_process();
-    if (result != LIBRAW_SUCCESS)
-        throwLibRawError("Processing RAW file", result);
+    auto image = Developer.Develop(
+        processor,
+        cancelled
+    );
 
-    if (IsCancelled(cancelled))
-        return {};
+    std::cerr
+        << "[Lensflare RAW] decode finished"
+        << " | output=" << image.GetWidth()
+        << "x" << image.GetHeight()
+        << " | null=" << image.IsNull()
+        << '\n';
 
-    int memoryError = LIBRAW_SUCCESS;
-    libraw_processed_image_t* processed =
-        processor.dcraw_make_mem_image(&memoryError);
-
-    if (!processed || memoryError != LIBRAW_SUCCESS)
-    {
-        if (processed)
-            LibRaw::dcraw_clear_mem(processed);
-
-        throwLibRawError("Creating processed image", memoryError);
-    }
-
-    try
-    {
-        if (processed->type != LIBRAW_IMAGE_BITMAP)
-            throw std::runtime_error("LibRaw returned an unsupported image type");
-
-        if (processed->bits != 16)
-            throw std::runtime_error("Lensflare expects 16-bit LibRaw output");
-
-        if (processed->colors != 3)
-            throw std::runtime_error("Lensflare expects RGB LibRaw output");
-
-        if (IsCancelled(cancelled))
-        {
-            LibRaw::dcraw_clear_mem(processed);
-            return {};
-        }
-
-        lensflare::image::EditableImage image(
-            static_cast<int>(processed->width),
-            static_cast<int>(processed->height)
-        );
-
-        auto& destination = image.GetPixels();
-        const auto* source =
-            reinterpret_cast<const std::uint16_t*>(processed->data);
-
-        constexpr float normalization = 1.0f / 65535.0f;
-
-        for (std::size_t i = 0; i < destination.size(); ++i)
-        {
-            if ((i & 0xFFFF) == 0 && IsCancelled(cancelled))
-            {
-                LibRaw::dcraw_clear_mem(processed);
-                return {};
-            }
-
-            destination[i] = static_cast<float>(source[i]) * normalization;
-        }
-
-        LibRaw::dcraw_clear_mem(processed);
-        return image;
-    }
-    catch (...)
-    {
-        LibRaw::dcraw_clear_mem(processed);
-        throw;
-    }
+    return image;
 }
 
 Thumbnail RawDecoder::LoadThumbnail(

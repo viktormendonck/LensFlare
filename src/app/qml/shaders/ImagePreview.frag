@@ -40,8 +40,13 @@ vec3 LinearToSrgb(vec3 value)
 void main()
 {
     const vec3 sourceColor = texture(source, qt_TexCoord0).rgb;
+
+    // Exposure is deliberately a pure scene-linear EV adjustment.
+    // Highlight reconstruction belongs before this stage and the
+    // display/view transform belongs after it.
     const float exposureMultiplier = exp2(exposure);
     const vec3 exposedColor = sourceColor * exposureMultiplier;
+
     const vec3 displayColor = LinearToSrgb(exposedColor);
 
     fragColor = vec4(displayColor, 1.0) * qt_Opacity;

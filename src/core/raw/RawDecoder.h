@@ -1,10 +1,12 @@
 #pragma once
+
 #include <cstdint>
 #include <filesystem>
 #include <functional>
 #include <vector>
 
 #include "editor/EditableImage.h"
+#include "RawDeveloper.h"
 
 struct Thumbnail
 {
@@ -40,4 +42,6 @@ private:
     {
         return cancelled && cancelled();
     }
+
+    lensflare::raw::RawDeveloper Developer;
 };

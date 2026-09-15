@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
     );
 
     //load first image for testing
-    controller.OpenFile(QUrl::fromLocalFile("/home/lazage/Pictures/Temp/6.June 2026/13-06-2026/IMG_2381.CR2"));
+    controller.OpenFile(QUrl::fromLocalFile("/home/lazage/Pictures/Temp/6.June 2026/13-06-2026/IMG_2401.CR2"));
 
     if (engine.rootObjects().isEmpty()) {
         return -1;
